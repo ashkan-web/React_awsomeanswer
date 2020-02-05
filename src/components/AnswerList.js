@@ -7,9 +7,9 @@ export const AnswerList = props => {
     <ul>
       {props.answers.map(answer => (
         <AnswerDetails
-          body={answer.body}
-          author={answer.author}
-          created_at={new Date(answer.create_at)}
+          key={answer.id}
+          {...answer}
+          onDeleteClick={props.onAnswerDeleteClick}
         />
       ))}
     </ul>
