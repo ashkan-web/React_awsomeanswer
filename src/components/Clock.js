@@ -23,7 +23,7 @@ export class Clock extends Component {
     //   This method is called the first time the component is
     // rendered in the DOM. Use it to fetch, add some event listeners,
     // connect to a socket, etc...
-    console.log("Inside componentDidMount");
+    // console.log("Inside componentDidMount");
     this.interValId = setInterval(() => {
       this.setState({
         dateTime: new Date()
@@ -32,8 +32,11 @@ export class Clock extends Component {
   }
 
   componentWillUnmount() {
-    // This method is called before the component is removed from 
-    // the DOM. 
+    // This method is called before the component is removed from
+    // the DOM. Use it to clean up setIntervals, setTimeouts, event
+    // listeners, etc...
+    // console.log("Clock component is unmounted");
+    clearInterval(this.interValId);
   }
 
   render() {
