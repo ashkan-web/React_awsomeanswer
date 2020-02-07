@@ -5,8 +5,11 @@ import QuestionShowPage from "./QuestionShowPage";
 import { QuestionIndexPage } from "./QuestionIndexPage";
 import { WelcomePage } from "./WelcomePage";
 import { NavBar } from "./NavBar";
-import { Session } from "../api/session";
 import { QuestionNewPage } from "./QuestionNewPage";
+import { SignInPage } from "./SignInPage";
+import { User } from "../api/user";
+import { Session } from "../api/session";
+import { AuthRoute } from "./AuthRoute";
 
 class App extends Component {
   constructor(props) {
@@ -14,33 +17,61 @@ class App extends Component {
     this.state = {
       currentUser: null
     };
+
+    this.getUser = this.getUser.bind(this);
+    this.destroySession = this.destroySession.bind(this);
   }
 
-  async componentDidMount() {
-    // This gives us back a cookie that represents us being logged in
-    // Now, when we make POST requests to the server to make a Question,
-    // we will be authorized/authenticated
-    // This is a Hacky method until we learn about Authentication in React
-    const user = await Session.create({
-      email: "js@winterfell.gov",
-      password: "supersecret"
+  getUser() {
+    User.current().then(data => {
+      if (typeof data.id !== "number") {
+        this.setState({ currentUser: null });
+      } else {
+        this.setState({ currentUser: data });
+      }
     });
+  }
 
-    this.setState({ currentUser: user });
+  destroySession() {
+    Session.destroy().then(this.setState({ currentUser: null }));
+  }
+
+  componentDidMount() {
+    this.getUser();
   }
 
   render() {
     return (
       <BrowserRouter>
         <header>
-          <NavBar />
+          <NavBar
+            currentUser={this.state.currentUser}
+            onSignOut={this.destroySession}
+          />
         </header>
         <div className="ui container segment">
           <Switch>
             <Route exact path="/" component={WelcomePage} />
             <Route exact path="/questions" component={QuestionIndexPage} />
-            <Route exact path="/questions/new" component={QuestionNewPage} />
-            <Route path="/questions/:id" component={QuestionShowPage} />
+            <AuthRoute
+              // The !! turns a statement from "truthy/falsy" to "true/false" respectively
+              isAuthenticated={!!this.state.currentUser}
+              component={QuestionNewPage}
+              path="/questions/new"
+              exact
+            />
+            <AuthRoute
+              isAuthenticated={!!this.state.currentUser}
+              component={QuestionShowPage}
+              path="/questions/:id"
+              exact
+            />
+            <Route
+              path="/sign_in"
+              render={routeProps => (
+                <SignInPage {...routeProps} onSignIn={this.getUser} />
+              )}
+            />
           </Switch>
         </div>
       </BrowserRouter>
